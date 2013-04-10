@@ -1,0 +1,202 @@
+Avram 
+Marius 
+314CB 
+
+  Tema 3
+  
+  3.1 Evaluare continua
+  
+   O mare parte din modul in care a fost rezolvat taskul este explicat in 
+ interiorul fisierului ce contine functia 'eval_interpolator_c.m . Din aceasta
+ cauza nu voi insista foarte tare asupra modului in care a fost realizata 
+ fiecare interpolare si voi face o prezentare rapida si apoi voi analiza 
+ convergenta fiecarei metode. 
+ 
+   Pe langa cei doi parametri din cerinta am mai introdus parametrul 'kmax'.
+ Acesta reprezinta k-ul maxim dupa care ciclul se opreste in cazul in care 
+ metoda nu converge ( numarul maxim de pasi la care se refera cerinta ). 
+   Existenta acestui parametru este verificata inca de la inceputul functiei,
+ iar in cazul in care nu exista este initializata cu 5. Am considerat ca acest   
+ numar este cel mai indicat pentru a nu avea un timp de executie prea lung.
+   
+   Cat timp toleranta nu este atinsa se vor calcula interpolantii in cele N+1 
+ puncte, iar la fiecare pas k-ul creste si respectiv suportul de interpolare 2^k
+ creste. In functie de tipul selectat se realizeaza interpolarea. 
+ 
+ 1).Lagrange 
+    
+    Modul de aplicare al metodei este relativ simplu. Se calculeaza polinomul
+ Lagrange in fiecare punct (val). 
+    
+    Se observa ca pentru un numar mic de iteratii metoda converge, chiar mai 
+ bine decat metoda splineurilor cubice: 
+    
+    eval_interpolator_c('1',0.01)
+    
+    k =  2
+    E =  0.47513
+    k =  3
+    E =  0.12330
+    k =  4
+    E =  0.0091812
+    k =  5
+    E =  2.7188e-04
+    ans =  32
+    
+    Insa daca se creeaza un suport de interpolare cu foarte multe puncte 
+ gradul polinomul creste si metoda devine instabila. 
+    
+    eval_interpolator_c('1',0.00001,6)
+    k =  2
+    E =  0.47513
+    k =  3
+    E =  0.12330
+    k =  4
+    E =  0.0091812
+    k =  5
+    E =  2.7188e-04
+    k =  6
+    E =  3.2858e-04
+    k =  7
+    E =  9.9322e+14
+    ans = Inf    => Metoda nu este convergenta pentru suport larg de interpolare
+
+ 2).Newton 
+    Se calculeaza diferentele divizate, iar apoi se aplica formula pentru 
+ calculul polinomului Newton. Comportamentul este identic cu cel al metodei 
+ Lagrange: pentru tolerante mici metoda pare sa convearga insa apoi devine 
+ instabila. 
+    
+    eval_interpolator_c('2',0.01)
+    k =  2
+    E =  0.47513
+    k =  3
+    E =  0.12330
+    k =  4
+    E =  0.0091812
+    k =  5
+    E =  2.7188e-04
+    ans =  32
+
+   
+    eval_interpolator_c('2',0.0001)
+    k =  2
+    E =  0.47513
+    k =  3
+    E =  0.12330
+    k =  4
+    E =  0.0091812
+    k =  5
+    E =  2.7188e-04
+    k =  6
+    E =  0.015027
+    ans = Inf       => Metoda nu converge, pentru suport larg de interpolare 
+
+ 3).Spline liniar
+    In faza incipienta sa cauta splineul caruia ii apartine punctul (unul 
+ dintre  cele N+1 puncte, denumit in contextul functiei val). Se calculeaza 
+ coeficientii pentru splineul respectiv, iar apoi se calculeaza valoarea in 
+ punctul respectiv.
+    Desi tindem sa credem ca metoda ar converge pe masura ce crestem suportul 
+ de interpolare eroarea ramane constanta si chiar creste de la un pas la altul.
+ Acest lucru se datoreaza faptului ca metoda este destul de inexacta.
+    
+    eval_interpolator_c('3',0.01,5)
+    k =  2
+    E =  0.48658
+    k =  3
+    E =  0.63012
+    k =  4
+    E =  0.51027
+    k =  5
+    E =  0.52269
+    k =  6
+    E =  0.53032
+    ans = Inf     =>Metoda nu converge
+ 
+ 4).Splineuri cubice naturale
+    Conditiile de interpolare in acest caz duc la formarea unui sistem de 
+ ecuatii. In functie de tipul functiei spline (natural sau tensionat) 
+ conditiile sunt diferite. Am preferat sa rezolv sistemul de ecuatii cu 
+ operatorul '\' datorita faptului ca rezolvarea sistemelor de ecuatii 
+ liniare nu reprezinta scopul acestei teme. 
+    Ca si in cazul anterior am cautat splineul ce contine punctul dorit 
+ si apoi dupa aflarea coeficientilor se afla valoarea interpolantului 
+ in punctul respectiv. 
+    Metoda splineurilor cubice converge indiferent de cat de mare este 
+ suportul de interpolare. 
+
+    eval_interpolator_c('4',0.01)
+    k =  2
+    E =  0.46907
+    k =  3
+    E =  0.16897
+    k =  4
+    E =  0.032228
+    k =  5
+    E =  0.0045739
+    k =  6
+    E =  0.0010211
+    ans =  64  
+    
+    eval_interpolator_c('4',0.0001)
+    k =  2
+    E =  0.46907
+    k =  3
+    E =  0.16897
+    k =  4
+    E =  0.032228
+    k =  5
+    E =  0.0045739
+    k =  6
+    E =  0.0010211
+    k =  7
+    E =  2.4580e-04
+    k =  8
+    E =  6.0609e-05
+    k =  9
+    E =  1.5068e-05
+    ans =  512      => Metoda converge 
+
+ 5).Splineuri cubice tensionate
+    Modul de interpolare in acest caz este asemanator cu cel de la 
+ punctul 4. Insa acum exista conditiile pentru capete, lucru care modifica 
+ putin sistemul de ecuatii. De asemenea si aceasta metoda converge 
+ indiferent cat de larg este spatiul de interpolare. 
+   
+    eval_interpolator_c('5',0.01)
+    k =  2
+    E =  0.80705
+    k =  3
+    E =  0.19688
+    k =  4
+    E =  0.031736
+    k =  5
+    E =  0.0045991
+    k =  6
+    E =  0.0011007
+    ans =  64   => Metoda converge 
+ 
+ 6).Polinomul de apoximare trigonometric(Fourrier) 
+    Baza trigonometrica este 1/sqrt(2),sin(x),cos(x),...,sin(n*x),cos(n*x). 
+ Coeficientii se calculeaza dupa formulele prezentate la curs. Iar apoi
+ se calculeaza polinomul de aproximare trigonometric. 
+    Se observa ca metoda converge insa mai incet decat daca am folosi 
+ splineuri cubice, in sensul ca diferente dintre erori de la un pas la 
+ altul sunt mai mici:
+    
+    eval_interpolator_c('6',0.01)
+    k =  2
+    E =  0.57664
+    k =  3
+    E =  0.44620
+    k =  4
+    E =  0.31964
+    k =  5
+    E =  0.30607
+    k =  6
+    E =  0.30000
+    ans =  64    =>Metoda converge 
+
+  Se observa astfel ca metoda splineurilor cubice (naturale) este cea mai buna
+ si mai exacta metoda de interpolare. 
